@@ -1,0 +1,38 @@
+name: Upload Upstream Kernel Source
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      upstream-repo:
+        description: 'Upstream repository URL'
+        required: true
+      branch-name:
+        description: 'Branch name in the upstream repository'
+        required: true
+        default: 'v5.15'
+
+jobs:
+  upload_upstream_source:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout upstream repository
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ github.event.inputs.upstream-repo }}
+          ref: ${{ github.event.inputs.branch-name }}
+
+      - name: Create artifact
+        run: |
+          # Create a zip file of the upstream kernel source
+          zip -r upstream_kernel_source.zip .
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: upstream-kernel-source
+          path: upstream_kernel_source.zip
