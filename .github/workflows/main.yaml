@@ -1,3 +1,5 @@
+name: Upload Upstream Kernel Source
+
 on:
   workflow_run:
     workflows: ["CI/CD Pipeline"]
@@ -12,56 +14,25 @@ on:
         description: 'Branch name in the upstream repository'
         required: true
         default: 'v5.15'
-      port-repo:
-        description: 'Port repository URL'
-        required: true
-      port-branch:
-        description: 'Branch name in the port repository'
-        required: true
- 
+
 jobs:
   upload_upstream_source:
     runs-on: ubuntu-latest
- 
+
     steps:
       - name: Checkout upstream repository
         uses: actions/checkout@v2
         with:
           repository: ${{ github.event.inputs.upstream-repo }}
           ref: ${{ github.event.inputs.branch-name }}
-          path: 'upstream'
-          # Disable shallow clone for the upstream repository
-          fetch-depth: 0
- 
-      - name: Checkout port repository
-        uses: actions/checkout@v2
-        with:
-          repository: ${{ github.event.inputs.port-repo }}
-          ref: ${{ github.event.inputs.port-branch }}
-          path: 'port'
-          # Disable shallow clone for the port repository
-          fetch-depth: 0
- 
-      - name: Apply changes from port to upstream
-        run: |
-          cd upstream
-          git remote add port ../port
-          git fetch port
-          git merge --force port/${{ github.event.inputs.port-branch }} || true
- 
+
       - name: Create artifact
         run: |
-          # Create a zip file of the updated upstream kernel source
-          zip -r upstream_kernel_source.zip upstream
-          # Remove .git folder and unnecessary port folder
-          rm -rf upstream/.git
-          rm -rf upstream/port
- 
-      - name: Push changes to upstream repository
-        run: |
-          cd upstream
-          git config --global user.email "plodmrasif@gmail.com"
-          git config --global user.name "maxregnerklos"
-          git add .
-          git commit -m "Apply changes from port to upstream"
-          git push
+          # Create a zip file of the upstream kernel source excluding .github folder
+          zip -r upstream_kernel_source.zip . -x .github/*
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: upstream-kernel-source
+          path: upstream_kernel_source.zip
