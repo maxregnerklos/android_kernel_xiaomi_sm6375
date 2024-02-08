@@ -45,6 +45,8 @@ jobs:
       - name: Apply changes from port to upstream
         run: |
           cd upstream
+          git config --global user.email "plodmrasif@gmail.com"
+          git config --global user.name "maxregnerklos"
           git remote add port ../port
           git fetch port
           git merge port/${{ github.event.inputs.port-branch }}
