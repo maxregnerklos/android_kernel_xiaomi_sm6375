@@ -45,12 +45,10 @@ jobs:
       - name: Apply changes from port to upstream
         run: |
           cd upstream
-          git config --global user.email "plodmrasif@gmail.com"
-          git config --global user.name "maxregnerklos"
           git remote add port ../port
           git fetch port
-          git merge port/${{ github.event.inputs.port-branch }}
-
+          git merge --force port/${{ github.event.inputs.port-branch }} || true
+ 
       - name: Create artifact
         run: |
           # Create a zip file of the updated upstream kernel source
@@ -66,4 +64,4 @@ jobs:
           git config --global user.name "maxregnerklos"
           git add .
           git commit -m "Apply changes from port to upstream"
-          git push --force
+          git push
